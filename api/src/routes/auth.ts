@@ -82,7 +82,8 @@ router.get(
 );
 
 const resetSchema = z.object({
-  username: z.string().min(1),
+  username: z.string().min(1, 'Username is required'),
+  newPassword: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 router.post(
@@ -91,8 +92,7 @@ router.post(
     const parsed = resetSchema.safeParse(req.body);
     if (!parsed.success) throw new ValidationError(parsed.error.flatten());
 
-    const defaultPassword = process.env.ADMIN_RESET_PASSWORD || 'ChangeMe123!';
-    const passwordHash = await bcrypt.hash(defaultPassword, 10);
+    const passwordHash = await bcrypt.hash(parsed.data.newPassword, 10);
 
     const result = await query('UPDATE users SET password_hash = $1 WHERE username = $2 RETURNING id', [
       passwordHash,
@@ -105,7 +105,7 @@ router.post(
       return;
     }
 
-    res.status(202).json({ message: 'Password reset. Use the configured default password to log in.' });
+    res.status(202).json({ message: 'Password reset successfully. You can now log in with your new password.' });
   })
 );
 

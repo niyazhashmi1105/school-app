@@ -32,7 +32,6 @@ jobs:
       SEED_ADMIN_USERNAME: admin
       SEED_ADMIN_PASSWORD: ci-admin-password
       SEED_ADMIN_EMAIL: admin@school.com
-      ADMIN_RESET_PASSWORD: ci-admin-password
       PORT: 4000
 
     steps:

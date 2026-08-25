@@ -32,7 +32,6 @@ services:
       SEED_ADMIN_USERNAME: ${SEED_ADMIN_USERNAME:-admin}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-ChangeMe123!}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@school.com}
-      ADMIN_RESET_PASSWORD: ${ADMIN_RESET_PASSWORD:-ChangeMe123!}
     ports:
       - "4000:4000"
 

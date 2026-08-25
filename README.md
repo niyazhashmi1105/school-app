@@ -44,7 +44,7 @@ also require an active (or in-grace-period) license — see **License** below.
 | POST | `/api/auth/signup` | – | Create an admin account |
 | POST | `/api/auth/login` | – | Log in, returns JWT |
 | POST | `/api/auth/logout` | ✓ | Stateless no-op (client discards token) |
-| POST | `/api/auth/reset-password` | – | Reset a user's password to the configured default |
+| POST | `/api/auth/reset-password` | – | Reset a user's password to a caller-supplied `newPassword` (min 6 chars) |
 | GET | `/api/auth/me` | ✓ | Current user profile |
 
 ### Students
@@ -80,6 +80,7 @@ also require an active (or in-grace-period) license — see **License** below.
 | Method | Path | Description |
 |---|---|---|
 | GET | `/api/dashboard/summary` | Totals for the dashboard cards |
+| GET | `/api/dashboard/student-fee-status` | Per-student fee totals + Paid/Pending status |
 
 ### Backup / Restore
 | Method | Path | Description |

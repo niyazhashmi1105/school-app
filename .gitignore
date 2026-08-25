@@ -5,3 +5,15 @@ dist/
 .DS_Store
 *.postman_collection.json
 tender_buds_school_software_v1.7_4.html
+
+# Android
+android-app/**/build/
+android-app/.gradle/
+android-app/local.properties
+android-app/*.pid
+android-app/*.png
+android-app/*.xml
+android-app/.idea/
+android-app/*.iml
+android-app/.cxx/
+android-app/captures/

@@ -61,7 +61,7 @@ expect "POST /api/auth/signup" 201 "$STATUS"
 STATUS=$(call GET /api/auth/me)
 expect "GET /api/auth/me" 200 "$STATUS"
 
-STATUS=$(call POST /api/auth/reset-password "{\"username\":\"ci_user_$RAND\"}" 0)
+STATUS=$(call POST /api/auth/reset-password "{\"username\":\"ci_user_$RAND\",\"newPassword\":\"NewSecurePass123\"}" 0)
 expect "POST /api/auth/reset-password" 202 "$STATUS"
 
 echo "== Error handling =="
@@ -148,6 +148,9 @@ expect "PUT /api/stock/:id" 200 "$STATUS"
 echo "== Dashboard =="
 STATUS=$(call GET /api/dashboard/summary)
 expect "GET /api/dashboard/summary" 200 "$STATUS"
+
+STATUS=$(call GET /api/dashboard/student-fee-status)
+expect "GET /api/dashboard/student-fee-status" 200 "$STATUS"
 
 echo "== Backup =="
 STATUS=$(call GET /api/backup/export)
