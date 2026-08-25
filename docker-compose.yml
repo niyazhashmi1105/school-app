@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-school_app}
+      POSTGRES_USER: ${POSTGRES_USER:-school_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-school_app_password}
+    volumes:
+      - school_app_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-school_app} -d ${POSTGRES_DB:-school_app}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      DATABASE_URL: postgres://${POSTGRES_USER:-school_app}:${POSTGRES_PASSWORD:-school_app_password}@db:5432/${POSTGRES_DB:-school_app}
+      JWT_SECRET: ${JWT_SECRET:-please-change-this-secret-in-production}
+      LICENSE_GRACE_DAYS: ${LICENSE_GRACE_DAYS:-14}
+      SEED_ADMIN_USERNAME: ${SEED_ADMIN_USERNAME:-admin}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-ChangeMe123!}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@school.com}
+      ADMIN_RESET_PASSWORD: ${ADMIN_RESET_PASSWORD:-ChangeMe123!}
+    ports:
+      - "4000:4000"
+
+volumes:
+  school_app_db_data:
