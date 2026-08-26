@@ -52,6 +52,39 @@ data class Student(
     val admissionDate: String
 )
 
+data class Fee(
+    val id: String,
+    val regNo: String,
+    val studentName: String,
+    val feeType: String,
+    val month: String,
+    val totalAmount: Double,
+    val amountPaid: Double,
+    val dueAmount: Double,
+    val paymentDate: String
+)
+
+data class FeeSummary(
+    val totalReceivable: Double,
+    val totalReceived: Double,
+    val totalPending: Double
+)
+
+data class Stock(
+    val id: String,
+    val itemType: String,
+    val category: String,
+    val subCategory: String,
+    val gender: String,
+    val studentClass: String,
+    val size: String,
+    val itemName: String,
+    val totalQuantity: Int,
+    val quantitySold: Int,
+    val remainingStock: Int,
+    val date: String
+)
+
 data class BackupImportSummary(
     val addedStudents: Int,
     val skippedStudents: Int,
@@ -272,6 +305,188 @@ object ApiClient {
                 ApiResult.Failure("Unexpected error: ${e.message}")
             }
         }
+
+    suspend fun getFees(token: String, search: String = ""): ApiResult<List<Fee>> =
+        withContext(Dispatchers.IO) {
+            val query = if (search.isNotBlank()) "?search=${java.net.URLEncoder.encode(search, "UTF-8")}" else ""
+            authGet("/api/fees$query", token) { body ->
+                val array = JSONObject(body).getJSONArray("fees")
+                (0 until array.length()).map { i -> parseFee(array.getJSONObject(i)) }
+            }
+        }
+
+    suspend fun getFeeSummary(token: String): ApiResult<FeeSummary> =
+        withContext(Dispatchers.IO) {
+            authGet("/api/fees/summary", token) { body ->
+                val json = JSONObject(body)
+                FeeSummary(
+                    totalReceivable = json.getDouble("totalReceivable"),
+                    totalReceived = json.getDouble("totalReceived"),
+                    totalPending = json.getDouble("totalPending")
+                )
+            }
+        }
+
+    suspend fun getFee(token: String, feeId: String): ApiResult<Fee> =
+        withContext(Dispatchers.IO) {
+            val path = "/api/fees/${java.net.URLEncoder.encode(feeId, "UTF-8")}"
+            authGet(path, token) { body -> parseFee(JSONObject(body).getJSONObject("fee")) }
+        }
+
+    suspend fun createFee(
+        token: String,
+        regNo: String,
+        feeType: String,
+        month: String,
+        totalAmount: Double,
+        amountPaid: Double,
+        paymentDate: String
+    ): ApiResult<Fee> =
+        withContext(Dispatchers.IO) {
+            authWrite("/api/fees", "POST", token, feeToJson(regNo, feeType, month, totalAmount, amountPaid, paymentDate), successStatus = 201) { body ->
+                parseFee(JSONObject(body).getJSONObject("fee"))
+            }
+        }
+
+    suspend fun updateFee(
+        token: String,
+        feeId: String,
+        regNo: String,
+        feeType: String,
+        month: String,
+        totalAmount: Double,
+        amountPaid: Double,
+        paymentDate: String
+    ): ApiResult<Fee> =
+        withContext(Dispatchers.IO) {
+            val path = "/api/fees/${java.net.URLEncoder.encode(feeId, "UTF-8")}"
+            authWrite(path, "PUT", token, feeToJson(regNo, feeType, month, totalAmount, amountPaid, paymentDate), successStatus = 200) { body ->
+                parseFee(JSONObject(body).getJSONObject("fee"))
+            }
+        }
+
+    suspend fun deleteFee(token: String, feeId: String): ApiResult<Unit> =
+        withContext(Dispatchers.IO) {
+            try {
+                val path = "/api/fees/${java.net.URLEncoder.encode(feeId, "UTF-8")}"
+                val connection = openConnection(path, "DELETE", token)
+                val status = connection.responseCode
+                if (status == 204) {
+                    ApiResult.Success(Unit)
+                } else {
+                    val body = readBody(connection, status)
+                    ApiResult.Failure(extractErrorMessage(body, status))
+                }
+            } catch (e: IOException) {
+                ApiResult.Failure("Could not reach the server. Is the API running at $BASE_URL?")
+            } catch (e: Exception) {
+                ApiResult.Failure("Unexpected error: ${e.message}")
+            }
+        }
+
+    suspend fun getStockList(token: String): ApiResult<List<Stock>> =
+        withContext(Dispatchers.IO) {
+            authGet("/api/stock", token) { body ->
+                val array = JSONObject(body).getJSONArray("stock")
+                (0 until array.length()).map { i -> parseStock(array.getJSONObject(i)) }
+            }
+        }
+
+    suspend fun getStock(token: String, stockId: String): ApiResult<Stock> =
+        withContext(Dispatchers.IO) {
+            val path = "/api/stock/${java.net.URLEncoder.encode(stockId, "UTF-8")}"
+            authGet(path, token) { body -> parseStock(JSONObject(body).getJSONObject("stock")) }
+        }
+
+    suspend fun createStock(token: String, stock: Stock): ApiResult<Stock> =
+        withContext(Dispatchers.IO) {
+            authWrite("/api/stock", "POST", token, stockToJson(stock), successStatus = 201) { body ->
+                parseStock(JSONObject(body).getJSONObject("stock"))
+            }
+        }
+
+    suspend fun updateStock(token: String, stockId: String, stock: Stock): ApiResult<Stock> =
+        withContext(Dispatchers.IO) {
+            val path = "/api/stock/${java.net.URLEncoder.encode(stockId, "UTF-8")}"
+            authWrite(path, "PUT", token, stockToJson(stock), successStatus = 200) { body ->
+                parseStock(JSONObject(body).getJSONObject("stock"))
+            }
+        }
+
+    suspend fun deleteStock(token: String, stockId: String): ApiResult<Unit> =
+        withContext(Dispatchers.IO) {
+            try {
+                val path = "/api/stock/${java.net.URLEncoder.encode(stockId, "UTF-8")}"
+                val connection = openConnection(path, "DELETE", token)
+                val status = connection.responseCode
+                if (status == 204) {
+                    ApiResult.Success(Unit)
+                } else {
+                    val body = readBody(connection, status)
+                    ApiResult.Failure(extractErrorMessage(body, status))
+                }
+            } catch (e: IOException) {
+                ApiResult.Failure("Could not reach the server. Is the API running at $BASE_URL?")
+            } catch (e: Exception) {
+                ApiResult.Failure("Unexpected error: ${e.message}")
+            }
+        }
+
+    private fun stockToJson(stock: Stock): JSONObject = JSONObject().apply {
+        put("itemType", stock.itemType)
+        put("category", stock.category)
+        put("subCategory", stock.subCategory)
+        put("gender", stock.gender)
+        put("class", stock.studentClass)
+        put("size", stock.size)
+        put("itemName", stock.itemName)
+        put("totalQuantity", stock.totalQuantity)
+        put("quantitySold", stock.quantitySold)
+        put("date", stock.date)
+    }
+
+    private fun parseStock(json: JSONObject): Stock = Stock(
+        id = json.getString("id"),
+        itemType = json.getString("itemType"),
+        category = json.getString("category"),
+        subCategory = json.optString("subCategory", ""),
+        gender = json.optString("gender", ""),
+        studentClass = json.optString("class", ""),
+        size = json.optString("size", ""),
+        itemName = json.getString("itemName"),
+        totalQuantity = json.getInt("totalQuantity"),
+        quantitySold = json.getInt("quantitySold"),
+        remainingStock = json.getInt("remainingStock"),
+        date = json.getString("date").take(10)
+    )
+
+    private fun feeToJson(
+        regNo: String,
+        feeType: String,
+        month: String,
+        totalAmount: Double,
+        amountPaid: Double,
+        paymentDate: String
+    ): JSONObject = JSONObject().apply {
+        put("regNo", regNo)
+        put("feeType", feeType)
+        put("month", month)
+        put("totalAmount", totalAmount)
+        put("amountPaid", amountPaid)
+        put("paymentDate", paymentDate)
+    }
+
+    private fun parseFee(json: JSONObject): Fee = Fee(
+        id = json.getString("id"),
+        regNo = json.getString("regNo"),
+        studentName = json.getString("studentName"),
+        feeType = json.getString("feeType"),
+        month = json.optString("month", ""),
+        totalAmount = json.getDouble("totalAmount"),
+        amountPaid = json.getDouble("amountPaid"),
+        dueAmount = json.getDouble("dueAmount"),
+        paymentDate = json.getString("paymentDate").take(10)
+    )
 
     private fun studentToJson(student: Student): JSONObject = JSONObject().apply {
         put("regNo", student.regNo)

@@ -24,8 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavHostController
 import com.tenderbuds.schoolapp.ui.routes.DashboardRoute
+import com.tenderbuds.schoolapp.ui.routes.FeesRoute
+import com.tenderbuds.schoolapp.ui.routes.StockRoute
 import com.tenderbuds.schoolapp.ui.routes.StudentsRoute
-import com.tenderbuds.schoolapp.ui.screens.ComingSoonScreen
 import com.tenderbuds.schoolapp.ui.theme.BrandIndigo
 
 private enum class MainTab(val label: String, val icon: ImageVector) {
@@ -68,8 +69,8 @@ fun MainScreen(rootNavController: NavHostController) {
             when (selectedTab) {
                 MainTab.DASHBOARD -> DashboardRoute(rootNavController)
                 MainTab.STUDENTS -> StudentsRoute(rootNavController)
-                MainTab.FEES -> ComingSoonScreen("Fee Management")
-                MainTab.STOCK -> ComingSoonScreen("Stock Records")
+                MainTab.FEES -> FeesRoute(rootNavController)
+                MainTab.STOCK -> StockRoute(rootNavController)
             }
         }
     }

@@ -67,4 +67,76 @@ object Validators {
 
     fun admissionDate(value: String): String? =
         if (value.isEmpty()) "Admission date is required" else null
+
+    fun feeStudent(value: String): String? =
+        if (value.trim().isEmpty()) "Please select a student" else null
+
+    fun feeType(value: String): String? =
+        if (value.isEmpty()) "Please select a fee type" else null
+
+    fun feeAmount(value: String, fieldLabel: String): String? {
+        val trimmed = value.trim()
+        val amount = trimmed.toDoubleOrNull()
+        return when {
+            trimmed.isEmpty() -> "$fieldLabel is required"
+            amount == null -> "Enter a valid amount"
+            amount < 0 -> "$fieldLabel cannot be negative"
+            else -> null
+        }
+    }
+
+    /** Mirrors the API's own check (see api/src/routes/fees.ts) so the form never submits a value the server would reject. */
+    fun amountPaidNotExceeding(totalAmount: String, amountPaid: String): String? {
+        val total = totalAmount.trim().toDoubleOrNull() ?: return null
+        val paid = amountPaid.trim().toDoubleOrNull() ?: return null
+        return if (paid > total) "Amount paid cannot exceed total amount" else null
+    }
+
+    fun paymentDate(value: String): String? =
+        if (value.isEmpty()) "Payment date is required" else null
+
+    fun stockItemType(value: String): String? =
+        if (value.isEmpty()) "Please select an item type" else null
+
+    fun stockBookCategory(value: String): String? =
+        if (value.isEmpty()) "Please select a book category" else null
+
+    fun stockNotebookSubject(value: String): String? =
+        if (value.isEmpty()) "Please select a notebook subject" else null
+
+    fun stockBookClass(value: String): String? =
+        if (value.isEmpty()) "Please select a class" else null
+
+    fun stockUniformType(value: String): String? =
+        if (value.isEmpty()) "Please select a uniform type" else null
+
+    fun stockUniformGender(value: String): String? =
+        if (value.isEmpty()) "Please select a gender" else null
+
+    fun stockUniformPiece(value: String): String? =
+        if (value.isEmpty()) "Please select an item piece" else null
+
+    fun stockUniformSize(value: String): String? =
+        if (value.trim().isEmpty()) "Please enter a size" else null
+
+    fun stockQuantity(value: String, fieldLabel: String): String? {
+        val trimmed = value.trim()
+        val quantity = trimmed.toIntOrNull()
+        return when {
+            trimmed.isEmpty() -> "$fieldLabel is required"
+            quantity == null -> "Enter a valid whole number"
+            quantity < 0 -> "$fieldLabel cannot be negative"
+            else -> null
+        }
+    }
+
+    /** Mirrors the API's own check (see api/src/routes/stock.ts) so the form never submits a value the server would reject. */
+    fun quantitySoldNotExceeding(totalQuantity: String, quantitySold: String): String? {
+        val total = totalQuantity.trim().toIntOrNull() ?: return null
+        val sold = quantitySold.trim().toIntOrNull() ?: return null
+        return if (sold > total) "Quantity sold cannot exceed total quantity" else null
+    }
+
+    fun stockDate(value: String): String? =
+        if (value.isEmpty()) "Date is required" else null
 }

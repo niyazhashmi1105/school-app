@@ -48,6 +48,13 @@ const FEE_SELECT = `
   JOIN students s ON s.reg_no = f.reg_no
 `;
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** fees.id is a UUID column — a malformed id would otherwise reach Postgres and raise a raw 22P02 error. */
+function requireFeeId(id: string): void {
+  if (!UUID_REGEX.test(id)) throw new NotFoundError(`Fee record ${id} not found`);
+}
+
 router.get(
   '/',
   asyncHandler(async (req, res) => {
@@ -84,6 +91,16 @@ router.get(
   })
 );
 
+router.get(
+  '/:id',
+  asyncHandler(async (req, res) => {
+    requireFeeId(req.params.id);
+    const result = await query<FeeRow>(`${FEE_SELECT} WHERE f.id = $1`, [req.params.id]);
+    if (result.rows.length === 0) throw new NotFoundError(`Fee record ${req.params.id} not found`);
+    res.json({ fee: toApiFee(result.rows[0]) });
+  })
+);
+
 router.post(
   '/',
   asyncHandler(async (req, res) => {
@@ -111,6 +128,7 @@ router.post(
 router.put(
   '/:id',
   asyncHandler(async (req, res) => {
+    requireFeeId(req.params.id);
     const parsed = feeSchema.safeParse(req.body);
     if (!parsed.success) throw new ValidationError(parsed.error.flatten());
     const f = parsed.data;
@@ -137,6 +155,7 @@ router.put(
 router.delete(
   '/:id',
   asyncHandler(async (req, res) => {
+    requireFeeId(req.params.id);
     const result = await query('DELETE FROM fees WHERE id = $1', [req.params.id]);
     if (result.rowCount === 0) throw new NotFoundError(`Fee record ${req.params.id} not found`);
     res.status(204).send();

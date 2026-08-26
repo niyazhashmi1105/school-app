@@ -8,6 +8,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.tenderbuds.schoolapp.ui.routes.AddEditFeeRoute
+import com.tenderbuds.schoolapp.ui.routes.AddEditStockRoute
 import com.tenderbuds.schoolapp.ui.routes.AddEditStudentRoute
 import com.tenderbuds.schoolapp.ui.routes.ForgotPasswordRoute
 import com.tenderbuds.schoolapp.ui.routes.LoginRoute
@@ -25,6 +27,14 @@ object Destinations {
     private const val STUDENT_REG_NO_ARG = "regNo"
     const val ADD_EDIT_STUDENT_ROUTE = "$ADD_EDIT_STUDENT?$STUDENT_REG_NO_ARG={$STUDENT_REG_NO_ARG}"
 
+    const val ADD_EDIT_FEE = "addEditFee"
+    private const val FEE_ID_ARG = "feeId"
+    const val ADD_EDIT_FEE_ROUTE = "$ADD_EDIT_FEE?$FEE_ID_ARG={$FEE_ID_ARG}"
+
+    const val ADD_EDIT_STOCK = "addEditStock"
+    private const val STOCK_ID_ARG = "stockId"
+    const val ADD_EDIT_STOCK_ROUTE = "$ADD_EDIT_STOCK?$STOCK_ID_ARG={$STOCK_ID_ARG}"
+
     fun forgotPassword(username: String): String =
         "$FORGOT_PASSWORD?$FORGOT_PASSWORD_USERNAME_ARG=${Uri.encode(username)}"
 
@@ -32,6 +42,16 @@ object Destinations {
 
     fun editStudent(regNo: String): String =
         "$ADD_EDIT_STUDENT?$STUDENT_REG_NO_ARG=${Uri.encode(regNo)}"
+
+    fun addFee(): String = ADD_EDIT_FEE
+
+    fun editFee(feeId: String): String =
+        "$ADD_EDIT_FEE?$FEE_ID_ARG=${Uri.encode(feeId)}"
+
+    fun addStock(): String = ADD_EDIT_STOCK
+
+    fun editStock(stockId: String): String =
+        "$ADD_EDIT_STOCK?$STOCK_ID_ARG=${Uri.encode(stockId)}"
 }
 
 @Composable
@@ -53,6 +73,20 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         ) { backStackEntry ->
             val regNo = backStackEntry.arguments?.getString("regNo")
             AddEditStudentRoute(navController, regNo)
+        }
+        composable(
+            route = Destinations.ADD_EDIT_FEE_ROUTE,
+            arguments = listOf(navArgument("feeId") { type = NavType.StringType; nullable = true; defaultValue = null })
+        ) { backStackEntry ->
+            val feeId = backStackEntry.arguments?.getString("feeId")
+            AddEditFeeRoute(navController, feeId)
+        }
+        composable(
+            route = Destinations.ADD_EDIT_STOCK_ROUTE,
+            arguments = listOf(navArgument("stockId") { type = NavType.StringType; nullable = true; defaultValue = null })
+        ) { backStackEntry ->
+            val stockId = backStackEntry.arguments?.getString("stockId")
+            AddEditStockRoute(navController, stockId)
         }
     }
 }

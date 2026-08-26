@@ -51,6 +51,13 @@ function toApiStock(row: StockRow) {
   };
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** stock.id is a UUID column — a malformed id would otherwise reach Postgres and raise a raw 22P02 error. */
+function requireStockId(id: string): void {
+  if (!UUID_REGEX.test(id)) throw new NotFoundError(`Stock item ${id} not found`);
+}
+
 router.get(
   '/',
   asyncHandler(async (_req, res) => {
@@ -134,6 +141,16 @@ router.post(
   })
 );
 
+router.get(
+  '/:id',
+  asyncHandler(async (req, res) => {
+    requireStockId(req.params.id);
+    const result = await query<StockRow>('SELECT * FROM stock WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) throw new NotFoundError(`Stock item ${req.params.id} not found`);
+    res.json({ stock: toApiStock(result.rows[0]) });
+  })
+);
+
 router.post(
   '/',
   asyncHandler(async (req, res) => {
@@ -187,6 +204,7 @@ router.post(
 router.put(
   '/:id',
   asyncHandler(async (req, res) => {
+    requireStockId(req.params.id);
     const parsed = stockSchema.safeParse(req.body);
     if (!parsed.success) throw new ValidationError(parsed.error.flatten());
     const s = parsed.data;
@@ -211,6 +229,7 @@ router.put(
 router.delete(
   '/:id',
   asyncHandler(async (req, res) => {
+    requireStockId(req.params.id);
     const result = await query('DELETE FROM stock WHERE id = $1', [req.params.id]);
     if (result.rowCount === 0) throw new NotFoundError(`Stock item ${req.params.id} not found`);
     res.status(204).send();

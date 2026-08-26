@@ -61,6 +61,7 @@ also require an active (or in-grace-period) license — see **License** below.
 |---|---|---|
 | GET | `/api/fees?search=` | List / search fee records |
 | GET | `/api/fees/summary` | Totals: receivable / received / pending |
+| GET | `/api/fees/:id` | Get one fee record |
 | POST | `/api/fees` | Create fee record |
 | PUT | `/api/fees/:id` | Update fee record |
 | DELETE | `/api/fees/:id` | Delete fee record |
@@ -71,6 +72,7 @@ also require an active (or in-grace-period) license — see **License** below.
 | GET | `/api/stock` | List all stock items |
 | GET | `/api/stock/class-availability?filter=` | Class-wise stock breakdown |
 | GET | `/api/stock/uniform-sizes` | Saved size suggestions per uniform piece |
+| GET | `/api/stock/:id` | Get one stock item |
 | POST | `/api/stock/uniform-sizes` | Save a new custom size suggestion |
 | POST | `/api/stock` | Add stock (merges into an existing matching item as a restock) |
 | PUT | `/api/stock/:id` | Update a stock item |
