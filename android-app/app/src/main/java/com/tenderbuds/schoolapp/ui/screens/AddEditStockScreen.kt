@@ -603,8 +603,10 @@ fun AddEditStockScreen(
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                StockStatusBox(matchingStock = matchingStock, isEditMode = isEditMode)
+                if (!isEditMode) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    StockStatusBox(matchingStock = matchingStock)
+                }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -733,11 +735,10 @@ fun AddEditStockScreen(
 }
 
 @Composable
-private fun StockStatusBox(matchingStock: Stock?, isEditMode: Boolean) {
+private fun StockStatusBox(matchingStock: Stock?) {
     val (text, color) = if (matchingStock != null) {
         val (statusLabel, statusColor) = stockStatusLabel(matchingStock.remainingStock)
-        val suffix = if (!isEditMode) " The quantities you enter below will be added to this record." else ""
-        "Existing record — Total: ${matchingStock.totalQuantity}, Sold: ${matchingStock.quantitySold}, Remaining: ${matchingStock.remainingStock} ($statusLabel).$suffix" to statusColor
+        "Existing record — Total: ${matchingStock.totalQuantity}, Sold: ${matchingStock.quantitySold}, Remaining: ${matchingStock.remainingStock} ($statusLabel). The quantities you enter below will be added to this record." to statusColor
     } else {
         "No existing stock for this item yet — a new record will be created." to null
     }

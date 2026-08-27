@@ -37,10 +37,11 @@ interface StudentFeeStatusRow {
 
 router.get(
   '/student-fee-status',
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req, res) => {
     // Per-student totals across all their fee records, computed here (not in
     // the client) so it scales the same way regardless of how many students
     // or fee records exist.
+    const search = (req.query.search as string | undefined)?.trim();
     const result = await query<StudentFeeStatusRow>(
       `SELECT s.reg_no, s.name, s.class,
               COALESCE(SUM(f.total_amount), 0) AS total_fees,
@@ -48,8 +49,10 @@ router.get(
               COALESCE(SUM(f.due_amount), 0) AS total_due
        FROM students s
        LEFT JOIN fees f ON f.reg_no = s.reg_no
+       ${search ? 'WHERE s.reg_no ILIKE $1' : ''}
        GROUP BY s.reg_no, s.name, s.class, s.created_at
-       ORDER BY s.created_at DESC`
+       ORDER BY s.created_at DESC`,
+      search ? [`%${search}%`] : []
     );
 
     const studentFeeStatus = result.rows.map((row) => {

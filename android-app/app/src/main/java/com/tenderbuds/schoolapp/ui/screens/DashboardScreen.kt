@@ -90,6 +90,8 @@ fun DashboardScreen(
     summary: DashboardSummary? = null,
     studentFeeStatus: List<StudentFeeStatus> = emptyList(),
     classStock: List<ClassStockItem> = emptyList(),
+    feeSearchQuery: String = "",
+    onFeeSearchQueryChange: (String) -> Unit = {},
     stockFilter: String = "",
     onStockFilterChange: (String) -> Unit = {},
     isExporting: Boolean = false,
@@ -185,10 +187,26 @@ fun DashboardScreen(
 
                     item {
                         SectionHeader(title = "Fee Status by Student", modifier = Modifier.padding(top = 8.dp))
+                        Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+                            OutlinedTextField(
+                                value = feeSearchQuery,
+                                onValueChange = onFeeSearchQueryChange,
+                                placeholder = { Text("Search by registration number…") },
+                                singleLine = true,
+                                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                                shape = RoundedCornerShape(14.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                     item {
                         if (studentFeeStatus.isEmpty()) {
-                            EmptyStateRow("No fee records found")
+                            EmptyStateRow(
+                                if (feeSearchQuery.isBlank()) "No fee records found" else "No students match \"$feeSearchQuery\""
+                            )
                         } else {
                             val feeListState = rememberLazyListState()
                             LazyColumn(

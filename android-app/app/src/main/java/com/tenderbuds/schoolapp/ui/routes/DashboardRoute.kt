@@ -37,6 +37,8 @@ fun DashboardRoute(navController: NavHostController) {
     var summary by remember { mutableStateOf<DashboardSummary?>(null) }
     var studentFeeStatus by remember { mutableStateOf<List<StudentFeeStatus>>(emptyList()) }
     var classStock by remember { mutableStateOf<List<ClassStockItem>>(emptyList()) }
+    var feeSearchQuery by remember { mutableStateOf("") }
+    var latestFeeStatusRequestId by remember { mutableStateOf(0) }
     var stockFilter by remember { mutableStateOf("") }
     var latestStockRequestId by remember { mutableStateOf(0) }
     var isExporting by remember { mutableStateOf(false) }
@@ -62,7 +64,7 @@ fun DashboardRoute(navController: NavHostController) {
         isLoading = true
         scope.launch {
             val summaryResult = ApiClient.getDashboardSummary(currentToken)
-            val feeStatusResult = ApiClient.getStudentFeeStatus(currentToken)
+            val feeStatusResult = ApiClient.getStudentFeeStatus(currentToken, feeSearchQuery)
             val stockResult = ApiClient.getClassStockAvailability(currentToken, stockFilter)
 
             when (summaryResult) {
@@ -72,6 +74,19 @@ fun DashboardRoute(navController: NavHostController) {
             if (feeStatusResult is ApiResult.Success) studentFeeStatus = feeStatusResult.data
             if (stockResult is ApiResult.Success) classStock = stockResult.data
             isLoading = false
+        }
+    }
+
+    fun reloadFeeStatus(search: String) {
+        val currentToken = token ?: return
+        // Same race-guard pattern as reloadStock: only the most recently
+        // issued request is allowed to overwrite the displayed list.
+        val requestId = ++latestFeeStatusRequestId
+        scope.launch {
+            when (val result = ApiClient.getStudentFeeStatus(currentToken, search)) {
+                is ApiResult.Success -> if (requestId == latestFeeStatusRequestId) studentFeeStatus = result.data
+                is ApiResult.Failure -> Unit // Keep the last known list rather than clearing it on a search hiccup.
+            }
         }
     }
 
@@ -164,6 +179,11 @@ fun DashboardRoute(navController: NavHostController) {
         summary = summary,
         studentFeeStatus = studentFeeStatus,
         classStock = classStock,
+        feeSearchQuery = feeSearchQuery,
+        onFeeSearchQueryChange = { newQuery ->
+            feeSearchQuery = newQuery
+            reloadFeeStatus(newQuery)
+        },
         stockFilter = stockFilter,
         onStockFilterChange = { newFilter ->
             stockFilter = newFilter

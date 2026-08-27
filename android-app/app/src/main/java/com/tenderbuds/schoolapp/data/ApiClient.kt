@@ -220,9 +220,10 @@ object ApiClient {
             }
         }
 
-    suspend fun getStudentFeeStatus(token: String): ApiResult<List<StudentFeeStatus>> =
+    suspend fun getStudentFeeStatus(token: String, search: String = ""): ApiResult<List<StudentFeeStatus>> =
         withContext(Dispatchers.IO) {
-            authGet("/api/dashboard/student-fee-status", token) { body ->
+            val query = if (search.isNotBlank()) "?search=${java.net.URLEncoder.encode(search, "UTF-8")}" else ""
+            authGet("/api/dashboard/student-fee-status$query", token) { body ->
                 val array = JSONObject(body).getJSONArray("studentFeeStatus")
                 (0 until array.length()).map { i ->
                     val item = array.getJSONObject(i)
